@@ -1,5 +1,5 @@
 #! /bin/sh
 
-$(dirname $0)/flyway.sh migrate
+$(dirname $0)/flyway.sh -a migrate -s flywaytest
 
 

@@ -1,26 +1,43 @@
 #! /bin/sh
 
-if [ $# != 1 ]
+while getopts :s:a: OPTION
+do
+    case $OPTION in
+	s)
+	    schema=$OPTARG
+	    ;;
+	a)
+	    actionArg=$OPTARG
+	    ;;
+	*)
+	    echo "invalid option $OPTARG" 1>&2
+	    exit 1
+    esac
+done
+    
+if [ -z "$schema" -o -z "$actionArg" ]
 then
-    echo "usage: $(basename $0) clean|migrate" 1>&2
+    echo "usage: $(basename $0) -s <schema> -a clean|migrate|baseline" 1>&2
     exit 1
 fi
 
-case $1 in
+case $actionArg in
     clean)
 	action=flywayClean
 	;;
     migrate)
 	action=flywayMigrate
 	;;
+    baseline)
+	action=flywayBaseline
+	;;
     *)
-	echo "action is clean or migrate, nothing else." 1>&2
+	echo "action is clean, migrate, or baseline, nothing else." 1>&2
 	exit 1
 esac
     
 server=localhost
 userID=flyway_user
-schema=flywaytest
 password=$(pass Database/MySQL/local/$userID)
 
 url="jdbc:mysql://$server:3306/$schema?useSSL=true&verifyServerCertificate=false"
