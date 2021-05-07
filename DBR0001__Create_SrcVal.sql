@@ -1,0 +1,5 @@
+CREATE TABLE SrcVal (
+  `SrcCde` int unsigned NOT NULL AUTO_INCREMENT,
+  `SrcTxt` varchar(45) NOT NULL,
+  PRIMARY KEY (`SrcCde`)
+) ENGINE=InnoDB AUTO_INCREMENT=1065 DEFAULT CHARSET=latin1;
