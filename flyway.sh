@@ -1,47 +1,37 @@
 #! /bin/sh
 
-while getopts :s:a: OPTION
+while getopts :a:s: OPTION
 do
     case $OPTION in
+	a)
+	    case $OPTARG in
+		clean)
+		    action=flyway:clean
+		    ;;
+		migrate)
+		    action=flyway:migrate
+		    ;;
+		*)
+		    echo "action is clean or migrate, nothing else." 1>&2
+		    exit 1
+	    esac
+	    ;;
 	s)
 	    schema=$OPTARG
 	    ;;
-	a)
-	    actionArg=$OPTARG
-	    ;;
 	*)
-	    echo "invalid option $OPTARG" 1>&2
+	    echo "usage: $(basename $0) -a clean|migrate [-s schema]" 1>&2
 	    exit 1
+	    ;;
     esac
 done
     
-if [ -z "$schema" -o -z "$actionArg" ]
-then
-    echo "usage: $(basename $0) -s <schema> -a clean|migrate|baseline" 1>&2
-    exit 1
-fi
-
-case $actionArg in
-    clean)
-	action=flywayClean
-	;;
-    migrate)
-	action=flywayMigrate
-	;;
-    baseline)
-	action=flywayBaseline
-	;;
-    *)
-	echo "action is clean, migrate, or baseline, nothing else." 1>&2
-	exit 1
-esac
-    
 server=localhost
 userID=flyway_user
-password=$(pass Database/MySQL/local/$userID)
+[ "$server" = "localhost" ] && key="MySQL/local" || key=$server
+password=$(pass Database/$key/$userID)
 
-url="jdbc:mysql://$server:3306/$schema?useSSL=true&verifyServerCertificate=false"
+url="jdbc:mysql://$server:3306/${schema:-QuoteOfTheDay}?useSSL=true"
 
-./gradlew -Dflyway.url="$url" -Dflyway.user="$userID" -Dflyway.password="$password" -Dflyway.sqlMigrationPrefix=DBR -Dflyway.locations=filesystem:`pwd` -Dflyway.table=schema_version $action
-
+mvn -Dflyway.url="$url" -Dflyway.user="$userID" -Dflyway.password="$password" -Dflyway.sqlMigrationPrefix=DBR -Dflyway.locations=filesystem:`pwd` -Dflyway.cleanDisabled=false -Dflyway.table=schema_version $action
 
